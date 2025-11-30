@@ -1,16 +1,35 @@
-# mobile_moto_ihc
+# CambaEats Conductor (Mobile)
 
-A new Flutter project.
+## Arquitectura usada
+- **Flutter** (Dart)
+- Arquitectura simple: sin Provider, sin MVVM, sin login
+- Navegación directa: selector de conductor → pantalla principal
+- Integración con backend NestJS vía HTTP
+- Uso de Google Maps y Geolocator para ubicación en tiempo real
 
-## Getting Started
+## ¿Cómo correr la app?
+1. **Requisitos previos:**
+   - Tener Flutter instalado ([guía oficial](https://docs.flutter.dev/get-started/install))
+   - Android Studio o emulador/dispositivo físico
+   - Google Maps API Key configurada en `android/app/src/main/AndroidManifest.xml`
+2. **Instalar dependencias:**
+   ```bash
+   flutter pub get
+   ```
+3. **Ejecutar en dispositivo/emulador:**
+   ```bash
+   flutter run
+   ```
 
-This project is a starting point for a Flutter application.
+## Funcionalidades mínimas actuales
+- Selector de conductor (Tachero 1 / Tachero 2)
+- Mapa en tiempo real con ubicación del conductor (soporta Fake GPS)
+- Polling automático para recibir pedidos asignados
+- Alerta de nuevo pedido con opción de aceptar o rechazar
+- Flujo completo: aceptar, iniciar viaje, entregar
+- Reasignación automática si un conductor rechaza
+- Actualización de ubicación al backend cada 5 segundos
 
-A few resources to get you started if this is your first Flutter project:
+---
 
-- [Lab: Write your first Flutter app](https://docs.flutter.dev/get-started/codelab)
-- [Cookbook: Useful Flutter samples](https://docs.flutter.dev/cookbook)
-
-For help getting started with Flutter development, view the
-[online documentation](https://docs.flutter.dev/), which offers tutorials,
-samples, guidance on mobile development, and a full API reference.
+> Proyecto MVP para la demo de CambaEats. Código limpio, sin pantallas ni lógica innecesaria. Solo lo esencial para el flujo de conductores.
