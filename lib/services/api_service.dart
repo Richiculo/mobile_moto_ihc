@@ -23,92 +23,113 @@ class ApiService {
     return headers;
   }
 
-  // Login
-  Future<Map<String, dynamic>> login(String email, String password) async {
-    // TODO: Implementar cuando backend esté listo
-    // final response = await http.post(
-    //   Uri.parse('$baseUrl${Constants.loginEndpoint}'),
-    //   headers: _getHeaders(),
-    //   body: jsonEncode({'email': email, 'password': password}),
-    // ).timeout(Constants.apiTimeout);
+  // pal tachero
 
-    // if (response.statusCode == 200) {
-    //   return jsonDecode(response.body) as Map<String, dynamic>;
-    // } else {
-    //   throw Exception('Error en login: ${response.statusCode}');
-    // }
-
-    // Mock response por ahora
-    await Future.delayed(const Duration(seconds: 1));
-    return {
-      'token': 'mock_token_12345',
-      'user': {'id': 'user_1', 'name': 'Adolf Hitler', 'email': email},
-    };
-  }
-
-  // Obtener pedidos
-  Future<List<Pedido>> obtenerPedidos({String? estado}) async {
-    // TODO: Implementar cuando backend esté listo
-    // final url = estado != null
-    //     ? '$baseUrl${Constants.ventasEndpoint}?estado=$estado'
-    //     : '$baseUrl${Constants.ventasEndpoint}';
-    //
-    // final response = await http.get(
-    //   Uri.parse(url),
-    //   headers: _getHeaders(),
-    // ).timeout(Constants.apiTimeout);
-
-    // if (response.statusCode == 200) {
-    //   final List<dynamic> data = jsonDecode(response.body) as List<dynamic>;
-    //   return data.map((json) => Pedido.fromJson(json as Map<String, dynamic>)).toList();
-    // } else {
-    //   throw Exception('Error obteniendo pedidos: ${response.statusCode}');
-    // }
-
-    // Mock response por ahora
-    await Future.delayed(const Duration(milliseconds: 500));
-    return [];
-  }
-
-  // Actualizar estado de pedido
-  Future<Pedido> actualizarEstadoPedido(
-    String pedidoId,
-    String nuevoEstado,
+  // Actualizar ubicación del tacherito
+  Future<void> actualizarUbicacionConductor(
+    String conductorId,
+    double latitud,
+    double longitud,
   ) async {
-    // TODO: Implementar cuando backend esté listo
-    // final response = await http.patch(
-    //   Uri.parse('$baseUrl${Constants.ventasEndpoint}/$pedidoId'),
-    //   headers: _getHeaders(),
-    //   body: jsonEncode({'estado': nuevoEstado}),
-    // ).timeout(Constants.apiTimeout);
+    final response = await http
+        .put(
+          Uri.parse('$baseUrl/conductores/$conductorId/ubicacion'),
+          headers: _getHeaders(),
+          body: jsonEncode({'latitud': latitud, 'longitud': longitud}),
+        )
+        .timeout(Constants.apiTimeout);
 
-    // if (response.statusCode == 200) {
-    //   return Pedido.fromJson(jsonDecode(response.body) as Map<String, dynamic>);
-    // } else {
-    //   throw Exception('Error actualizando pedido: ${response.statusCode}');
-    // }
-
-    // Mock response por ahora
-    await Future.delayed(const Duration(milliseconds: 300));
-    throw UnimplementedError('Backend no conectado aún');
+    if (response.statusCode != 200) {
+      throw Exception('Error actualizando ubicación: ${response.statusCode}');
+    }
   }
 
-  // Obtener detalle de pedido
-  Future<Pedido> obtenerDetallePedido(String pedidoId) async {
-    // TODO: Implementar cuando backend esté listo
-    // final response = await http.get(
-    //   Uri.parse('$baseUrl${Constants.ventasEndpoint}/$pedidoId'),
-    //   headers: _getHeaders(),
-    // ).timeout(Constants.apiTimeout);
+  // Obtener pedido pendiente asignado al tacherin
+  Future<Pedido?> obtenerPedidoPendiente(String conductorId) async {
+    final response = await http
+        .get(
+          Uri.parse('$baseUrl/conductores/$conductorId/pedido-pendiente'),
+          headers: _getHeaders(),
+        )
+        .timeout(Constants.apiTimeout);
 
-    // if (response.statusCode == 200) {
-    //   return Pedido.fromJson(jsonDecode(response.body) as Map<String, dynamic>);
-    // } else {
-    //   throw Exception('Error obteniendo detalle: ${response.statusCode}');
-    // }
+    if (response.statusCode == 200 || response.statusCode == 201) {
+      // Si el body está vacío, no hay pedido pendiente
+      if (response.body.isEmpty || response.body == 'null') {
+        return null;
+      }
+      try {
+        final data = jsonDecode(response.body);
+        if (data == null) return null;
+        return Pedido.fromJson(data as Map<String, dynamic>);
+      } catch (e) {
+        // Si falla el parseo, asumir que no hay pedido
+        return null;
+      }
+    } else if (response.statusCode == 404) {
+      return null; // No hay pedido pendiente
+    } else {
+      throw Exception('Error obteniendo pedido: ${response.statusCode}');
+    }
+  }
 
-    // Mock response por ahora
-    await Future.delayed(const Duration(milliseconds: 300));
-    throw UnimplementedError('Backend no conectado aún');
+  // Aceptar pedido
+  Future<void> aceptarPedido(String pedidoId, String conductorId) async {
+    final response = await http
+        .post(
+          Uri.parse('$baseUrl/pedidos/$pedidoId/aceptar'),
+          headers: _getHeaders(),
+          body: jsonEncode({'conductorId': conductorId}),
+        )
+        .timeout(Constants.apiTimeout);
+
+    if (response.statusCode != 200 && response.statusCode != 201) {
+      throw Exception('Error aceptando pedido: ${response.statusCode}');
+    }
+  }
+
+  // Rechazar pedido
+  Future<void> rechazarPedido(String pedidoId, String conductorId) async {
+    final response = await http
+        .post(
+          Uri.parse('$baseUrl/pedidos/$pedidoId/rechazar'),
+          headers: _getHeaders(),
+          body: jsonEncode({'conductorId': conductorId}),
+        )
+        .timeout(Constants.apiTimeout);
+
+    if (response.statusCode != 200) {
+      throw Exception('Error rechazando pedido: ${response.statusCode}');
+    }
+  }
+
+  // Iniciar viaje
+  Future<void> iniciarViaje(String pedidoId, String conductorId) async {
+    final response = await http
+        .post(
+          Uri.parse('$baseUrl/pedidos/$pedidoId/iniciar-viaje'),
+          headers: _getHeaders(),
+          body: jsonEncode({'conductorId': conductorId}),
+        )
+        .timeout(Constants.apiTimeout);
+
+    if (response.statusCode != 200 && response.statusCode != 201) {
+      throw Exception('Error iniciando viaje: ${response.statusCode}');
+    }
+  }
+
+  // Entregar pedido
+  Future<void> entregarPedido(String pedidoId, String conductorId) async {
+    final response = await http
+        .post(
+          Uri.parse('$baseUrl/pedidos/$pedidoId/entregar'),
+          headers: _getHeaders(),
+          body: jsonEncode({'conductorId': conductorId}),
+        )
+        .timeout(Constants.apiTimeout);
+
+    if (response.statusCode != 200 && response.statusCode != 201) {
+      throw Exception('Error entregando pedido: ${response.statusCode}');
+    }
   }
 }

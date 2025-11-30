@@ -41,6 +41,12 @@ dependencies:
   # HTTP requests (preparado para cuando conecten backend)
   http: ^1.2.0
   
+  # Google Maps
+  google_maps_flutter: ^2.5.0
+  
+  # Geolocalización
+  geolocator: ^10.1.0
+  
   # URL launcher (para abrir Google Maps, llamadas, WhatsApp)
   url_launcher: ^6.2.5
   
